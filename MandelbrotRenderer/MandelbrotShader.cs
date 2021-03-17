@@ -23,14 +23,7 @@ namespace MandelbrotRenderer
                 z = Complex.Add(Complex.Pow(z, Complex.FromValue(power, 0)), c);
             }
 
-
-
-            float final;
-            if (i == maxIterations) { final = i; }
-            else
-            {
-                final = i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
-            }
+            var final = i == maxIterations ? i : i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
             final /= maxIterations;
 
             image[ThreadIds.XY] = new Float4((Float3)final, 1f);

@@ -20,6 +20,6 @@ namespace MandelbrotRenderer
         }
         
         public static Float4 ToFloat4(Viewport v) =>
-            new Float4(v.Left, v.Right, v.Top, v.Bottom);
+            new(v.Left, v.Right, v.Top, v.Bottom);
     }
 }
