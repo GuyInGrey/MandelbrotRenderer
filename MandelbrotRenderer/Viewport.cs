@@ -1,4 +1,6 @@
-﻿namespace MandelbrotRenderer
+﻿using ComputeSharp;
+
+namespace MandelbrotRenderer
 {
     public struct Viewport
     {
@@ -16,5 +18,8 @@
             toReturn.Bottom = b;
             return toReturn;
         }
+        
+        public static Float4 ToFloat4(Viewport v) =>
+            new Float4(v.Left, v.Right, v.Top, v.Bottom);
     }
 }

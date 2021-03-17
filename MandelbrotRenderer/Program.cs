@@ -17,7 +17,7 @@ namespace MandelbrotRenderer
 
             Mandelbrot.RenderAndSave(new RenderProperties()
             {
-                Viewport = Viewport.FromValues(0, 0, 0, 0),
+                Viewport = Viewport.FromValues(-2.25f, 0.75f, -1.5f, 1.5f),
                 FileName = "test.png",
                 ImageSize = (8192, 8192),
                 MaxIterations = 75,

@@ -16,7 +16,7 @@ namespace MandelbrotRenderer
             using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(image.Width, image.Height);
             using var buffer = Gpu.Default.AllocateReadWriteBuffer<int>(image.Width * image.Height);
 
-            var instance = new MandelbrotShader(texture, props.Viewport, props.MaxIterations, props.Power);
+            var instance = new MandelbrotShader(texture, Viewport.ToFloat4(props.Viewport), props.MaxIterations, props.Power);
             Gpu.Default.For(texture.Width, texture.Height, instance);
             _ = image.TryGetSinglePixelSpan(out var span);
             texture.CopyTo(MemoryMarshal.Cast<SixLaborsRgba32, Rgba32>(span));

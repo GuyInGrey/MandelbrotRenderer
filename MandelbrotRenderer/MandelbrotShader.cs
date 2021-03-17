@@ -6,15 +6,15 @@ namespace MandelbrotRenderer
     public readonly partial struct MandelbrotShader : IComputeShader
     {
         public readonly ReadWriteTexture2D<Rgba32, Float4> image;
-        public readonly Viewport viewport;
+        public readonly Float4 viewport;
         public readonly int maxIterations;
         public readonly float power;
 
         public void Execute()
         {
             var c = Complex.FromValue(
-                Map(ThreadIds.X, 0, image.Width, viewport.Left, viewport.Right),
-                Map(ThreadIds.Y, 0, image.Height, viewport.Top, viewport.Bottom));
+                Map(ThreadIds.X, 0, image.Width, viewport.X, viewport.Y),
+                Map(ThreadIds.Y, 0, image.Height, viewport.Z, viewport.W));
 
             var z = Complex.Zero();
             int i;
