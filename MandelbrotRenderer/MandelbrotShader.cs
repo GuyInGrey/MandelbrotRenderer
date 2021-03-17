@@ -9,7 +9,6 @@ namespace MandelbrotRenderer
         public readonly Float4 viewport;
         public readonly int maxIterations;
         public readonly float power;
-        public readonly ReadWriteBuffer<bool> debugData;
 
         public void Execute()
         {
@@ -33,8 +32,7 @@ namespace MandelbrotRenderer
             }
             final /= maxIterations;
 
-            debugData[ThreadIds.X + (ThreadIds.Y * image.Width)] = true;
-            image[ThreadIds.X, ThreadIds.Y].ARGB = new Float4(1f, final, final, final);
+            image[ThreadIds.XY] = new Float4((Float3)final, 1f);
         }
 
         public static float ComplexAbs(Float2 complex)

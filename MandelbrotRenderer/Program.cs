@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
+using SixLaborsRgba32 = SixLabors.ImageSharp.PixelFormats.Rgba32;
 
 using ComputeSharp;
+
+using SixLabors.ImageSharp;
+using System.Runtime.InteropServices;
 
 namespace MandelbrotRenderer
 {
@@ -19,35 +21,20 @@ namespace MandelbrotRenderer
 
         public static unsafe void Run()
         {
-            var bitmap = new Bitmap(10, 10);
-            var bitmapData = bitmap.LockBits(
-                new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                ImageLockMode.ReadWrite,
-                PixelFormat.Format32bppArgb);
+            using Image<SixLaborsRgba32> image = new(128, 128);
+            using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(image.Width, image.Height);
+            using var buffer = Gpu.Default.AllocateReadWriteBuffer<int>(image.Width * image.Height);
 
             var viewport = new Float4(-2.25f, 0.75f, -1.5f, 1.5f);
             var pow = 2f;
             var maxIterations = 50;
-            var debug = new bool[bitmap.Width * bitmap.Height];
-            debug[0] = true;
 
-            try
-            {
-                var bitmapSpan = new Span<Rgba32>((Rgba32*)bitmapData.Scan0, bitmapData.Width * bitmapData.Height);
-                using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(bitmapSpan, bitmap.Width, bitmap.Height);
-                using var debugData = Gpu.Default.AllocateReadWriteBuffer(debug);
-                var instance = new MandelbrotShader(texture, viewport, maxIterations, pow, debugData);
-                Gpu.Default.For(bitmap.Width, bitmap.Height, instance);
-                texture.CopyTo(bitmapSpan);
-                debugData.CopyTo(debug);
-            }
-            finally
-            {
-                bitmap.UnlockBits(bitmapData);
-            }
+            var instance = new MandelbrotShader(texture, viewport, maxIterations, pow);
+            Gpu.Default.For(texture.Width, texture.Height, instance);
+            _ = image.TryGetSinglePixelSpan(out var span);
+            texture.CopyTo(MemoryMarshal.Cast<SixLaborsRgba32, Rgba32>(span));
 
-            bitmap.Save("test.png", ImageFormat.Png);
-            Console.WriteLine(string.Join("\n", debug));
+            image.SaveAsPng(@"test.png");
         }
 
         // For testing
