@@ -21,7 +21,11 @@ namespace MandelbrotRenderer
             if (Directory.Exists(dir)) { Directory.Delete(dir, true); }
             Directory.CreateDirectory(dir);
 
-            var count = 120;
+            var startTime = HighResolutionDateTime.UtcNow;
+
+            var count = 3600;
+            var completed = 0;
+            var time = HighResolutionDateTime.UtcNow;
             Mandelbrot.RenderBatch(count, i =>
             {
                 return new RenderProperties()
@@ -30,16 +34,27 @@ namespace MandelbrotRenderer
                     FileName = Path.Combine(dir, $"{i:000000}.png"),
                     ImageSize = (2000, 2000),
                     MaxIterations = 75,
-                    Power = MandelbrotShader.Map(i, 0, count - 1, 0, 3),
+                    Power = MandelbrotShader.Map(i, 0, count - 1, 0, 6),
                 };
             }, i =>
             {
-                Console.WriteLine($"{i} / {count}");
+                completed++;
+                if (time.AddSeconds(1) < HighResolutionDateTime.UtcNow)
+                {
+                    time = HighResolutionDateTime.UtcNow;
+                    var MSPerFrame = (HighResolutionDateTime.UtcNow - startTime).TotalMilliseconds / (float)completed;
+                    var estimatedMSLeft = (count - completed) * MSPerFrame;
+
+                    Console.Clear();
+                    Console.WriteLine($"{(completed / (float)count) * 100:0.00}% {completed} / {count}\n" +
+                        $"{estimatedMSLeft/1000:0.0} seconds remaining.");
+                }
             });
 
-            var file = Helper.CompileIntoVideo("%06d.png", dir, "output.mp4", 60);
-            Helper.OpenWithDefaultProgram(file);
+            var video = Helper.CompileIntoVideo("%06d.png", dir, "output.mp4", 60);
+            Helper.OpenWithDefaultProgram(video);
 
+            Console.Clear();
             Console.WriteLine("Done!");
             Console.Read();
         }

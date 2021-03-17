@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using ComputeSharp;
 
@@ -33,12 +34,12 @@ namespace MandelbrotRenderer
             if (getProps is null) { throw new InvalidOperationException("getProps must not be null"); }
             var defaultProps = getProps(0);
 
-            using Image<SixLaborsRgba32> image = new(defaultProps.ImageSize.width, defaultProps.ImageSize.height);
-            using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(image.Width, image.Height);
-            using var buffer = Gpu.Default.AllocateReadWriteBuffer<int>(image.Width * image.Height);
-
-            for (var i = 0; i < count; i++)
+            Parallel.For(0, count, i =>
             {
+                using Image<SixLaborsRgba32> image = new(defaultProps.ImageSize.width, defaultProps.ImageSize.height);
+                using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(image.Width, image.Height);
+                using var buffer = Gpu.Default.AllocateReadWriteBuffer<int>(image.Width * image.Height);
+
                 var props = getProps(i);
 
                 var instance = new MandelbrotShader(texture, Viewport.ToFloat4(props.Viewport), props.MaxIterations, props.Power);
@@ -47,11 +48,11 @@ namespace MandelbrotRenderer
                 texture.CopyTo(MemoryMarshal.Cast<SixLaborsRgba32, Rgba32>(span));
                 image.SaveAsPng(props.FileName);
                 onFrameFinish?.Invoke(i);
-            }
 
-            image.Dispose();
-            texture.Dispose();
-            buffer.Dispose();
+                image.Dispose();
+                texture.Dispose();
+                buffer.Dispose();
+            });
         }
     }
 }
