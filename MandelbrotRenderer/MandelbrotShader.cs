@@ -9,18 +9,19 @@ namespace MandelbrotRenderer
         public readonly Float4 viewport;
         public readonly int maxIterations;
         public readonly float power;
+        public readonly ReadWriteBuffer<bool> debugData;
 
         public void Execute()
         {
             var c = new Float2(
-                Hlsl.Lerp(ThreadIds.X / image.Width, viewport.X, viewport.W),
-                Hlsl.Lerp(ThreadIds.Y / image.Height, viewport.Y, viewport.Z));
+                Hlsl.Lerp(ThreadIds.X / (float)image.Width, viewport.X, viewport.Z),
+                Hlsl.Lerp(ThreadIds.Y / (float)image.Height, viewport.Y, viewport.W));
             var z = c;
 
             var i = 0;
             while (ComplexAbs(z) <= 2 && i < maxIterations)
             {
-                z = ComplexPow(z, power) + c;
+                z = ComplexPow(z, new Float2(power, 0)) + c;
                 i++;
             }
 
@@ -32,7 +33,8 @@ namespace MandelbrotRenderer
             }
             final /= maxIterations;
 
-            image[ThreadIds.X, ThreadIds.Y].RGB = new Float3(final, final, final);
+            debugData[ThreadIds.X + (ThreadIds.Y * image.Width)] = true;
+            image[ThreadIds.X, ThreadIds.Y].ARGB = new Float4(1f, final, final, final);
         }
 
         public static float ComplexAbs(Float2 complex)
