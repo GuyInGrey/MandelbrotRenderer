@@ -21,11 +21,11 @@ namespace MandelbrotRenderer
 
         public static unsafe void Run()
         {
-            using Image<SixLaborsRgba32> image = new(128, 128);
+            using Image<SixLaborsRgba32> image = new(4096, 4096);
             using var texture = Gpu.Default.AllocateReadWriteTexture2D<Rgba32, Float4>(image.Width, image.Height);
             using var buffer = Gpu.Default.AllocateReadWriteBuffer<int>(image.Width * image.Height);
 
-            var viewport = new Float4(-2.25f, 0.75f, -1.5f, 1.5f);
+            var viewport = new Float4(-2.25f, -1.5f, 0.75f, 1.5f);
             var pow = 2f;
             var maxIterations = 50;
 
