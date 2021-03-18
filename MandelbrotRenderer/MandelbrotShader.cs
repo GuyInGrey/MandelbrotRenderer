@@ -17,6 +17,8 @@ namespace MandelbrotRenderer
                 Map(ThreadIds.X, 0, image.Width, viewport.X, viewport.Y),
                 Map(ThreadIds.Y, 0, image.Height, viewport.Z, viewport.W));
 
+            var a = A.Boi();
+
             var z = Complex.Zero();
             int i;
             for (i = 0; i < maxIterations && Complex.Abs(z) <= 2; i++)
