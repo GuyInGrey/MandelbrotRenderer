@@ -1,6 +1,8 @@
 ﻿using System;
-
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 
 using ComputeSharp;
 using ComputeSharp.SwapChain.Backend;
@@ -9,25 +11,33 @@ namespace MandelbrotRenderer
 {
     class Program
     {
+        static ReadOnlyBuffer<Color> colors;
+        static float size = 300;
+
         static void Main()
         {
             Console.WriteLine("Starting...");
 
+            colors = Gpu.Default.AllocateReadOnlyBuffer(new[]
+            {
+                Color.FromRGB(0, 0, 0),
+                Color.FromRGB(.392f, .584f, .929f),
+                Color.FromRGB(1, 1, 1),
+            });
+
             var app = new SwapChainApplication<MandelbrotShader>(static (texture, time) =>
             {
-                var pow = (float)(Math.Cos(time.TotalSeconds / 2f) + 2f) * 2f;
+                var pow = (float)(-Math.Cos(time.TotalSeconds / 6f) + 1f) * 1f;
 
-                var colors = Gpu.Default.AllocateReadOnlyBuffer<Color>(new[]
-                {
-                    Color.FromRGB(255, 0, 0),
-                    Color.FromRGB(255, 0, 0),
-                    Color.FromRGB(255, 0, 0),
-                });
 
+
+                //size *= 1.01f;
+                //Console.WriteLine(size);
                 return new MandelbrotShader(texture, 
-                    Helper.SizeToViewport(new Float3(0f, 0f, 300f), texture.Width, texture.Height), 
-                    10, 2f, colors);
+                    Helper.SizeToViewport(new Float3(-1.2425401f, 0.4132381f, size), texture.Width, texture.Height), 
+                    50, pow, colors);
             });
+            Thread.Sleep(1000);
             Win32ApplicationRunner.Run(app);
         }
 

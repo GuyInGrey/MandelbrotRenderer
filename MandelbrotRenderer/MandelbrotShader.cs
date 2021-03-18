@@ -24,7 +24,7 @@ namespace MandelbrotRenderer
                 z = Complex.Add(Complex.Pow(z, Complex.FromValue(power, 0)), c);
             }
 
-            var t = i == maxIterations ? maxIterations : i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
+            var t = i == maxIterations ? maxIterations : i + 1 - Hlsl.Log(Hlsl.Log2(Complex.Abs(z))) / Hlsl.Log(2);
             t /= maxIterations;
 
             var index = (int)(colors.Length * t);
@@ -35,15 +35,13 @@ namespace MandelbrotRenderer
 
             if (i == maxIterations)
             {
-                color = Color.FromRGB(0, 0, 0);
+                color = colors[colors.Length - 1];
             }
             image[ThreadIds.XY] = Color.ToFloat4(color);
         }
 
-        public static float Lerp(float a, float b, float t) =>
-            a * (1 - t) + b * t;
         public static float Map(float val, float a1, float b1, float a2, float b2) =>
-            Lerp(a2, b2, (val - a1) / (b1 - a1));
+            Hlsl.Lerp(a2, b2, (val - a1) / (b1 - a1));
     }
 
     public struct Complex
@@ -114,9 +112,9 @@ namespace MandelbrotRenderer
         {
             t = Hlsl.Clamp(t, 0, 1);
             Color c;
-            c.R = Hlsl.Lerp(t, a.R, b.R);
-            c.G = Hlsl.Lerp(t, a.G, b.G);
-            c.B = Hlsl.Lerp(t, a.B, b.B);
+            c.R = Hlsl.Lerp(a.R, b.R, t);
+            c.G = Hlsl.Lerp(a.G, b.G, t);
+            c.B = Hlsl.Lerp(a.B, b.B, t);
             return c;
         }
     }

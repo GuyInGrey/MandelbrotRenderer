@@ -24,7 +24,7 @@ namespace ComputeSharp.SwapChain.Backend
         /// <summary>
         /// Whether or not the application is currently paused.
         /// </summary>
-        private static bool isPaused = false;
+        public static bool isPaused = false;
 
         /// <summary>
         /// The <see cref="HWND"/> for the application window.
