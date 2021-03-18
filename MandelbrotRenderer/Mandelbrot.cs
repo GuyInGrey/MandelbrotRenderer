@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -66,6 +67,49 @@ namespace MandelbrotRenderer
                 texture.Dispose();
                 buffer.Dispose();
             });
+        }
+
+        public static void RenderVideo()
+        {
+            var dir = @"C:\RenderingTemp\";
+            if (Directory.Exists(dir)) { Directory.Delete(dir, true); }
+            Directory.CreateDirectory(dir);
+
+            var startTime = HighResolutionDateTime.UtcNow;
+
+            var count = 3600;
+            var completed = 0;
+            var time = HighResolutionDateTime.UtcNow;
+            RenderBatch(count, i =>
+            {
+                return new RenderProperties()
+                {
+                    Viewport = Viewport.FromValues(-2.25f, 0.75f, -1.5f, 1.5f),
+                    FileName = Path.Combine(dir, $"{i:000000}.bmp"),
+                    ImageSize = (2000, 2000),
+                    MaxIterations = 75,
+                    Power = HlslHelper.Map(i, 0, count - 1, 0, 6),
+                };
+            }, i =>
+            {
+                completed++;
+                if (time.AddSeconds(1) < HighResolutionDateTime.UtcNow)
+                {
+                    time = HighResolutionDateTime.UtcNow;
+                    var MSPerFrame = (HighResolutionDateTime.UtcNow - startTime).TotalMilliseconds / (float)completed;
+                    var estimatedMSLeft = (count - completed) * MSPerFrame;
+
+                    Console.Clear();
+                    Console.WriteLine($"{(completed / (float)count) * 100:0.00}% {completed} / {count}\n" +
+                        $"{estimatedMSLeft / 1000:0.0} seconds remaining.");
+                }
+            });
+
+            Console.WriteLine($"Done rendering! Took {(HighResolutionDateTime.UtcNow - startTime).TotalSeconds} seconds.");
+            var video = Helper.CompileIntoVideo("%06d.bmp", dir, "output.mp4", 60);
+            Helper.OpenWithDefaultProgram(video);
+
+            Console.WriteLine($"\nDone with everything! Took {(HighResolutionDateTime.UtcNow - startTime).TotalSeconds} seconds.");
         }
     }
 }
