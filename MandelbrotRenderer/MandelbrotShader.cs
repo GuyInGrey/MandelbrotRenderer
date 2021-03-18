@@ -24,10 +24,20 @@ namespace MandelbrotRenderer
                 z = Complex.Add(Complex.Pow(z, Complex.FromValue(power, 0)), c);
             }
 
-            var final = i == maxIterations ? i : i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
-            final /= maxIterations;
+            var t = i == maxIterations ? maxIterations : i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
+            t /= maxIterations;
 
-            image[ThreadIds.XY] = Color.ToFloat4(Color.LerpMultiple(colors, final));
+            var index = (int)(colors.Length * t);
+            var nextIndex = (index + 1) % colors.Length;
+            var worth = 1f / colors.Length;
+            var r = (t - (worth * index)) / worth;
+            var color = Color.Lerp(colors[index], colors[nextIndex], r);
+
+            if (i == maxIterations)
+            {
+                color = Color.FromRGB(0, 0, 0);
+            }
+            image[ThreadIds.XY] = Color.ToFloat4(color);
         }
 
         public static float Lerp(float a, float b, float t) =>
@@ -108,16 +118,6 @@ namespace MandelbrotRenderer
             c.G = Hlsl.Lerp(t, a.G, b.G);
             c.B = Hlsl.Lerp(t, a.B, b.B);
             return c;
-        }
-
-        public static Color LerpMultiple(ReadOnlyBuffer<Color> colors, float t)
-        {
-            t = Hlsl.Clamp(t, 0, 0.999999f);
-            var index = (int)(colors.Length * t);
-            var nextIndex = index == colors.Length - 1 ? 0 : index + 1;
-            var worth = 1f / colors.Length;
-            var r = (t - (worth * index)) / worth;
-            return Color.Lerp(colors[index], colors[nextIndex], r);
         }
     }
 }

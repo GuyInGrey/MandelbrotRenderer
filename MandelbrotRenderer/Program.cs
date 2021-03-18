@@ -17,16 +17,16 @@ namespace MandelbrotRenderer
             {
                 var pow = (float)(Math.Cos(time.TotalSeconds / 2f) + 2f) * 2f;
 
-                using var colors = Gpu.Default.AllocateReadOnlyBuffer<Color>(new[]
+                var colors = Gpu.Default.AllocateReadOnlyBuffer<Color>(new[]
                 {
                     Color.FromRGB(255, 0, 0),
-                    Color.FromRGB(0, 255, 0),
-                    Color.FromRGB(0, 0, 255),
+                    Color.FromRGB(255, 0, 0),
+                    Color.FromRGB(255, 0, 0),
                 });
 
                 return new MandelbrotShader(texture, 
-                    Helper.SizeToSides(new Float3(0f, 0f, 300f), texture.Width, texture.Height), 
-                    50, pow, colors);
+                    Helper.SizeToViewport(new Float3(0f, 0f, 300f), texture.Width, texture.Height), 
+                    10, 2f, colors);
             });
             Win32ApplicationRunner.Run(app);
         }

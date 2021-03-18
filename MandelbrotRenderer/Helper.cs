@@ -29,7 +29,7 @@ namespace MandelbrotRenderer
             fileopener.Start();
         }
 
-        public static Float4 SizeToSides(Float3 dim, int texWidth, int texHeight)
+        public static Float4 SizeToViewport(Float3 dim, int texWidth, int texHeight)
         {
             var widthUnit = texWidth / 2f / dim.Z;
             var heightUnit = texHeight / 2f / dim.Z;

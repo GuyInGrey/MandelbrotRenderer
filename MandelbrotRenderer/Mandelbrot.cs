@@ -23,7 +23,7 @@ namespace MandelbrotRenderer
             });
 
             var instance = new MandelbrotShader(texture, 
-                Helper.SizeToSides(new Float3(0f, 0f, 240f), image.Width, image.Height), 
+                Helper.SizeToViewport(new Float3(0f, 0f, 240f), image.Width, image.Height), 
                 props.MaxIterations, props.Power, colors);
             Gpu.Default.For(texture.Width, texture.Height, instance);
             _ = image.TryGetSinglePixelSpan(out var span);
@@ -54,7 +54,7 @@ namespace MandelbrotRenderer
                 var props = getProps(i);
 
                 var instance = new MandelbrotShader(texture, 
-                    Helper.SizeToSides(new Float3(0f, 0f, 240f), image.Width, image.Height), 
+                    Helper.SizeToViewport(new Float3(0f, 0f, 240f), image.Width, image.Height), 
                     props.MaxIterations, props.Power, colors);
                 Gpu.Default.For(texture.Width, texture.Height, instance);
                 _ = image.TryGetSinglePixelSpan(out var span);
