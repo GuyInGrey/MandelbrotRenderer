@@ -102,7 +102,7 @@ namespace MandelbrotRenderer
 
         public static Color Lerp(Color a, Color b, float t)
         {
-            t = Hlsl.Clamp(0, 1, t);
+            t = Hlsl.Clamp(t, 0, 1);
             Color c;
             c.R = Hlsl.Lerp(t, a.R, b.R);
             c.G = Hlsl.Lerp(t, a.G, b.G);
