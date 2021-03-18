@@ -5,10 +5,11 @@ namespace MandelbrotRenderer
     [AutoConstructor]
     public readonly partial struct MandelbrotShader : IComputeShader
     {
-        public readonly ReadWriteTexture2D<Rgba32, Float4> image;
+        public readonly IReadWriteTexture2D<Float4> image;
         public readonly Float4 viewport;
         public readonly int maxIterations;
         public readonly float power;
+        public readonly ReadOnlyBuffer<Color> colors;
 
         public void Execute()
         {
@@ -26,7 +27,7 @@ namespace MandelbrotRenderer
             var final = i == maxIterations ? i : i + 1 - Hlsl.Log(Hlsl.Log(Complex.Abs(z))) / Hlsl.Log(2);
             final /= maxIterations;
 
-            image[ThreadIds.XY] = new Float4((Float3)final, 1f);
+            image[ThreadIds.XY] = Color.ToFloat4(Color.LerpMultiple(colors, final));
         }
 
         public static float Lerp(float a, float b, float t) =>
@@ -78,6 +79,45 @@ namespace MandelbrotRenderer
 
             var t = Hlsl.Pow(rho, c) * Hlsl.Pow(2.718282f, -d * theta);
             return FromValue(t * Hlsl.Cos(newRho), t * Hlsl.Sin(newRho));
+        }
+    }
+
+    public struct Color
+    {
+        public float R;
+        public float G;
+        public float B;
+
+        public static Color FromRGB(float r, float g, float b)
+        {
+            Color c;
+            c.R = r;
+            c.G = g;
+            c.B = b;
+            return c;
+        }
+
+        public static Float4 ToFloat4(Color c) =>
+            new(c.R, c.G, c.B, 1f);
+
+        public static Color Lerp(Color a, Color b, float t)
+        {
+            t = Hlsl.Clamp(0, 1, t);
+            Color c;
+            c.R = Hlsl.Lerp(t, a.R, b.R);
+            c.G = Hlsl.Lerp(t, a.G, b.G);
+            c.B = Hlsl.Lerp(t, a.B, b.B);
+            return c;
+        }
+
+        public static Color LerpMultiple(ReadOnlyBuffer<Color> colors, float t)
+        {
+            t = Hlsl.Clamp(t, 0, 0.999999f);
+            var index = (int)(colors.Length * t);
+            var nextIndex = index == colors.Length - 1 ? 0 : index + 1;
+            var worth = 1f / colors.Length;
+            var r = (t - (worth * index)) / worth;
+            return Color.Lerp(colors[index], colors[nextIndex], r);
         }
     }
 }

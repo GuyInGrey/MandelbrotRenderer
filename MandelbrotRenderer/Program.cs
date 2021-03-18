@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Drawing;
-using SixLaborsRgba32 = SixLabors.ImageSharp.PixelFormats.Rgba32;
+
+using System.IO;
 
 using ComputeSharp;
-
-using SixLabors.ImageSharp;
-using System.Runtime.InteropServices;
-using System.IO;
-using System.Diagnostics;
+using ComputeSharp.SwapChain.Backend;
 
 namespace MandelbrotRenderer
 {
@@ -17,6 +13,26 @@ namespace MandelbrotRenderer
         {
             Console.WriteLine("Starting...");
 
+            var app = new SwapChainApplication<MandelbrotShader>(static (texture, time) =>
+            {
+                var pow = (float)(Math.Cos(time.TotalSeconds / 2f) + 2f) * 2f;
+
+                using var colors = Gpu.Default.AllocateReadOnlyBuffer<Color>(new[]
+                {
+                    Color.FromRGB(255, 0, 0),
+                    Color.FromRGB(0, 255, 0),
+                    Color.FromRGB(0, 0, 255),
+                });
+
+                return new MandelbrotShader(texture, 
+                    Helper.SizeToSides(new Float3(0f, 0f, 300f), texture.Width, texture.Height), 
+                    50, pow, colors);
+            });
+            Win32ApplicationRunner.Run(app);
+        }
+
+        public static void RenderVideo()
+        {
             var dir = @"C:\RenderingTemp\";
             if (Directory.Exists(dir)) { Directory.Delete(dir, true); }
             Directory.CreateDirectory(dir);
@@ -31,7 +47,7 @@ namespace MandelbrotRenderer
                 return new RenderProperties()
                 {
                     Viewport = Viewport.FromValues(-2.25f, 0.75f, -1.5f, 1.5f),
-                    FileName = Path.Combine(dir, $"{i:000000}.png"),
+                    FileName = Path.Combine(dir, $"{i:000000}.bmp"),
                     ImageSize = (2000, 2000),
                     MaxIterations = 75,
                     Power = MandelbrotShader.Map(i, 0, count - 1, 0, 6),
@@ -47,16 +63,15 @@ namespace MandelbrotRenderer
 
                     Console.Clear();
                     Console.WriteLine($"{(completed / (float)count) * 100:0.00}% {completed} / {count}\n" +
-                        $"{estimatedMSLeft/1000:0.0} seconds remaining.");
+                        $"{estimatedMSLeft / 1000:0.0} seconds remaining.");
                 }
             });
 
-            var video = Helper.CompileIntoVideo("%06d.png", dir, "output.mp4", 60);
+            Console.WriteLine($"Done rendering! Took {(HighResolutionDateTime.UtcNow - startTime).TotalSeconds} seconds.");
+            var video = Helper.CompileIntoVideo("%06d.bmp", dir, "output.mp4", 60);
             Helper.OpenWithDefaultProgram(video);
 
-            Console.Clear();
-            Console.WriteLine("Done!");
-            Console.Read();
+            Console.WriteLine($"\nDone with everything! Took {(HighResolutionDateTime.UtcNow - startTime).TotalSeconds} seconds.");
         }
     }
 }

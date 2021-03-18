@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 
+using ComputeSharp;
+
 namespace MandelbrotRenderer
 {
     public static class Helper
@@ -25,6 +27,13 @@ namespace MandelbrotRenderer
             fileopener.StartInfo.FileName = "explorer";
             fileopener.StartInfo.Arguments = "\"" + path + "\"";
             fileopener.Start();
+        }
+
+        public static Float4 SizeToSides(Float3 dim, int texWidth, int texHeight)
+        {
+            var widthUnit = texWidth / 2f / dim.Z;
+            var heightUnit = texHeight / 2f / dim.Z;
+            return new Float4(dim.X - widthUnit, dim.X + widthUnit, dim.Y - heightUnit, dim.Y + heightUnit);
         }
     }
 }
