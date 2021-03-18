@@ -8,7 +8,7 @@ namespace MandelbrotRenderer
 
         public static A Boi()
         {
-            var toReturn = new A();
+            A toReturn;
             toReturn.B = 1;
             return toReturn;
         }
